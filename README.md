@@ -1,60 +1,36 @@
-# Crime-Data-Analytics
-### Data Cleaning and Preprocessing
-- Instead of plain Pandas, Dask is used for all preprocessing steps.<br>
-- Dask splits the large file into smaller partitions and processes 
-them chunk by chunk, keeping memory usage low on the full 8M row dataset.<br>
-- Will suffice to answer scalability questions.<br>
+# Crime Data Analytics — Chicago Crime Dataset
+Team: Foram Gandhi · Bhumika Patil · Nirmeet Parmar · Harsh Parmar · Krishna Chhipa
 
-### What has been done:
-- Loaded the dataset using dd.read_csv() with correct column dtypes
-- Removed duplicate records based on ID column
-- Dropped rows with missing values
-- Removed rows with invalid/zero coordinates
-- Parsed the Date column into datetime format
-- Extracted Hour, Month, DayOfWeek, Year as separate columns
-- Kept only the top 25 most frequent Location Descriptions, rest marked as OTHER
-- Converted Primary Type, Location Description, Description to categorical
-- Dropped unnecessary columns (IUCR, FBI Code, Case Number, Updated On, Beat, Ward)
-- Called .compute() to finalize all steps.<b> Result is a clean Pandas DataFrame</b>
+---
 
-### For the next steps:
-- The final output is a standard Pandas DataFrame called allCrimes.
-- Next person can use it for EDA, visualizations, clustering, 
-and any ML modeling without worrying about Dask anymore.
-- A backup copy is saved as backup in case you need the clean data again.
+## Dataset
+Chicago Crime Dataset from the [City of Chicago Open Data Portal](https://data.cityofchicago.org/api/views/ijzp-q8t2/rows.csv?accessType=DOWNLOAD).
+7.8M+ crime records spanning 2001 to present, with 19 attributes including crime type, location, date, and arrest status.
 
-## Exploratory Data Analysis & Visualization 
+---
 
-### Overview
-* Full EDA is performed on the cleaned `allCrimes` DataFrame produced during Data Cleaning.
+**Data Preprocessing — Dask**
+Loaded and cleaned the full 7.8M row dataset using Dask for memory-efficient, parallel processing. Steps include deduplication, null removal, coordinate filtering, datetime parsing, rare-value encoding, and column pruning. Output is a clean Pandas DataFrame ready for analysis.
 
-### What has been done
+**Exploratory Data Analysis — Dask**
+Analyzed crime type distribution, arrest rates, monthly/seasonal patterns, and long-term trends from 2003–2024 using Dask for scalable groupby and aggregation operations.
 
-**Statistical Summary**
-* Printed dataset shape, column types, and numeric descriptive statistics
-* Computed value counts for Primary Type and Location Description
-* Calculated overall arrest rate and domestic crime rate
-* Confirmed no missing values remain after cleaning
+**Hotspot Detection - PySpark (Bisecting K-Means)**
+Clustered crimes into 30 spatiotemporal zones using Latitude, Longitude, and Hour as features. Bisecting K-Means was chosen over standard K-Means for its speed on large datasets. Each cluster represents a distinct crime hotspot.
 
-**Univariate Analysis**
-* Bar chart of top 15 crime types by frequency
-* Bar chart of top 10 location types where crimes occur
+**Arrest Prediction - PySpark (Random Forest)**
+Trained a Random Forest classifier (100 trees, depth 10) on 80/20 split to predict whether a crime leads to arrest. The Hotspot_ID from clustering is used as an engineered feature, linking the two pipelines. Achieved AUC 0.84 and F1 0.85 on 1.58M test records.
 
-**Time-based Analysis**
-* Line chart of crime frequency by hour of day (0–23) with peak hour marked
-* Bar chart of crime frequency by day of week with peak day highlighted
-* Multi-line trend chart of top 5 crime types over the years which shows which crimes are rising or falling
-* Line chart of seasonal pattern, crimes by month across all years
-* Line chart of long-term yearly trend from 2003 to 2024
+---
 
-**Bivariate Analysis**
-* Heatmap of crime count by hour of day vs day of week : reveals peak time windows
-* Horizontal bar chart of arrest rate per crime type (top 10) : highlights which crimes are more/less likely to result in arrest
+## Results
+| Metric | Value |
+|---|---|
+| AUC-ROC | 0.8402 |
+| Precision | 87.5% |
+| Recall | 86.5% |
+| F1 Score | 0.8494 |
 
-**Location-based Analysis**
-* Bar chart of total crime count per police district with highest district highlighted
-* Geographic scatter plot of 50,000 sampled crime locations using Latitude and Longitude which gives a visual sense of spatial crime density across Chicago
 
-**Pattern Identification**
-* Printed summary of all key patterns: peak hour, peak month, peak day, most common crime, most dangerous district, overall arrest rate, and long-term crime reduction percentage
+---
 
